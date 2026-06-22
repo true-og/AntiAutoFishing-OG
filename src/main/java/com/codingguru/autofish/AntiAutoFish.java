@@ -11,23 +11,27 @@ import com.codingguru.autofish.util.ConsoleUtil;
 
 public class AntiAutoFish extends JavaPlugin {
 
-	private static AntiAutoFish INSTANCE;
+    private static AntiAutoFish INSTANCE;
 
-	public void onEnable() {
-		INSTANCE = this;
-		
-		ConsoleUtil.sendPluginSetup();
+    public void onEnable() {
 
-		saveDefaultConfig();
+        INSTANCE = this;
 
-		Bukkit.getPluginManager().registerEvents(new PlayerFish(), this);
-		Bukkit.getPluginManager().registerEvents(new PlayerQuit(), this);
-		Bukkit.getPluginManager().registerEvents(new InventoryClose(this), this);
-		Bukkit.getPluginManager().registerEvents(new InventoryClick(this), this);
-	}
+        ConsoleUtil.sendPluginSetup();
 
-	public static AntiAutoFish getInstance() {
-		return INSTANCE;
-	}
+        saveDefaultConfig();
+
+        Bukkit.getPluginManager().registerEvents(new PlayerFish(), this);
+        Bukkit.getPluginManager().registerEvents(new PlayerQuit(), this);
+        Bukkit.getPluginManager().registerEvents(new InventoryClose(this), this);
+        Bukkit.getPluginManager().registerEvents(new InventoryClick(), this);
+
+    }
+
+    public static AntiAutoFish getInstance() {
+
+        return INSTANCE;
+
+    }
 
 }

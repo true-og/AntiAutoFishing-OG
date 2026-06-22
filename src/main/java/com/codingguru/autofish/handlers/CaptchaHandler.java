@@ -12,65 +12,94 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
 import com.codingguru.autofish.AntiAutoFish;
+import com.codingguru.autofish.util.ColorUtil;
 import com.codingguru.autofish.util.ConsoleUtil;
+
+import net.kyori.adventure.text.Component;
 
 public class CaptchaHandler {
 
-	private final static CaptchaHandler INSTANCE = new CaptchaHandler();
-	private static final Set<UUID> activeCaptchas = new HashSet<>();
+    private final static CaptchaHandler INSTANCE = new CaptchaHandler();
+    private static final Set<UUID> activeCaptchas = new HashSet<>();
 
-	@SuppressWarnings("deprecation")
-	public void openCaptcha(Player player) {
-		AntiAutoFish plugin = AntiAutoFish.getInstance();
-		String title = plugin.getConfig().getString("fishing-captcha.inventory-name", "Verify!");
+    public void openCaptcha(Player player) {
 
-		if (player.getOpenInventory() != null && player.getOpenInventory().getTitle().equalsIgnoreCase(title)
-				&& activeCaptchas.contains(player.getUniqueId()))
-			return;
+        // Skip if the captcha GUI is already open for this player.
+        if (activeCaptchas.contains(player.getUniqueId())
+                && player.getOpenInventory().getTopInventory().getHolder() instanceof CaptchaHolder)
+            return;
 
-		Material targetItem = getTargetItem();
-		int size = plugin.getConfig().getInt("fishing-captcha.inventory-size", 36);
-		Inventory inv = Bukkit.createInventory(null, size, title);
+        AntiAutoFish plugin = AntiAutoFish.getInstance();
+        Component title = ColorUtil.format(plugin.getConfig().getString("fishing-captcha.inventory-name", "Verify!"));
 
-		int correctSlot = ThreadLocalRandom.current().nextInt(size);
-		activeCaptchas.add(player.getUniqueId());
+        Material targetItem = getTargetItem();
+        int size = plugin.getConfig().getInt("fishing-captcha.inventory-size", 36);
+        Inventory inv = Bukkit.createInventory(new CaptchaHolder(), size, title);
 
-		for (int i = 0; i < size; i++) {
-			inv.setItem(i, new ItemStack(i == correctSlot ? targetItem : Material.AIR));
-		}
+        int correctSlot = ThreadLocalRandom.current().nextInt(size);
 
-		player.openInventory(inv);
-	}
+        for (int i = 0; i < size; i++) {
 
-	public Material getTargetItem() {
-		String itemName = AntiAutoFish.getInstance().getConfig().getString("fishing-captcha.captcha-item", "EMERALD");
-		Material targetItem;
+            inv.setItem(i, new ItemStack(i == correctSlot ? targetItem : Material.AIR));
 
-		try {
-			targetItem = Material.valueOf(itemName.toUpperCase());
-		} catch (IllegalArgumentException e) {
-			ConsoleUtil.warning("Invalid item type in config: " + itemName + ". Defaulting to EMERALD.");
-			targetItem = Material.EMERALD;
-		}
+        }
 
-		return targetItem;
-	}
+        player.openInventory(inv);
 
-	public boolean hasPendingCaptcha(Player player) {
-		return activeCaptchas.contains(player.getUniqueId());
-	}
+        // Mark active only after the GUI is actually open so a failed open cannot brick
+        // the player's fishing.
+        activeCaptchas.add(player.getUniqueId());
+        // Reset the timing sample so a fresh, post-verification window is collected
+        // regardless of how the captcha ends.
+        TimingHandler.getInstance().clear(player.getUniqueId());
 
-	public void removeCaptcha(Player player) {
-		activeCaptchas.remove(player.getUniqueId());
-	}
+    }
 
-	public void completeCaptcha(Player player) {
-		activeCaptchas.remove(player.getUniqueId());
-		PlayerHandler.getInstance().removeFishingData(player.getUniqueId());
-		player.closeInventory();
-	}
+    public Material getTargetItem() {
 
-	public static CaptchaHandler getInstance() {
-		return INSTANCE;
-	}
+        String itemName = AntiAutoFish.getInstance().getConfig().getString("fishing-captcha.captcha-item", "EMERALD");
+        Material targetItem;
+
+        try {
+
+            targetItem = Material.valueOf(itemName.toUpperCase());
+
+        } catch (IllegalArgumentException e) {
+
+            ConsoleUtil.warning("Invalid item type in config: " + itemName + ". Defaulting to EMERALD.");
+            targetItem = Material.EMERALD;
+
+        }
+
+        return targetItem;
+
+    }
+
+    public boolean hasPendingCaptcha(Player player) {
+
+        return activeCaptchas.contains(player.getUniqueId());
+
+    }
+
+    public void removeCaptcha(Player player) {
+
+        activeCaptchas.remove(player.getUniqueId());
+
+    }
+
+    public void completeCaptcha(Player player) {
+
+        activeCaptchas.remove(player.getUniqueId());
+        PlayerHandler.getInstance().removeFishingData(player.getUniqueId());
+        TimingHandler.getInstance().clear(player.getUniqueId());
+        player.closeInventory();
+
+    }
+
+    public static CaptchaHandler getInstance() {
+
+        return INSTANCE;
+
+    }
+
 }

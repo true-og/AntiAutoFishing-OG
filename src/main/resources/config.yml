@@ -1,70 +1,57 @@
-# General Settings
+# AntiAutoFishing-OG configuration
 
-check-for-updates: true # Check for new plugin updates
-
-# AntiFishing Settings
-
-# This is the max distance between the players last fishing location to count towards their anti fish total
-# If disabled then it will only count the exact same spot (including mouse movement)
-
-max-fish-distance: 
+# How far a player may move between catches and still count as the same spot.
+# Stationary auto-fishers stay within this radius; humans wander out and reset.
+max-fish-distance:
   enabled: true
-  distance: 3 # The amount of blocks between last fishing location
-  
-# Player captcha appears where they need to click on the emerald to continue
+  distance: 3 # Blocks from the last fishing location.
 
+# Timing analysis flags inhuman catch timing, regardless of position.
+# Either check below can trip the captcha.
+fishing-timing:
+  enabled: true
+  sample-size: 15 # Most recent catches kept per player.
+  min-catches: 10 # Catches required before judging (clamped to <= sample-size).
+  # Catch-interval check: how regular the gaps between catches are.
+  # Vanilla randomizes the bite wait (~5-30s), so this mainly catches fixed-timer bots.
+  cv-threshold: 0.1 # Flag when interval variation falls below this. Higher = more flags.
+  # Reaction check: time from a fish biting to the player reeling in. The stronger signal.
+  reaction-enabled: true
+  reaction-floor-ms: 120 # Average reaction faster than this (ms) is inhuman.
+  reaction-cv-threshold: 0.15 # Also flag overly consistent reactions, when fast (see below).
+  reaction-max-mean-ms: 400 # The reaction-cv check only applies below this average (ms).
+
+# Captcha: the player must click the target item in a GUI to keep fishing.
+# This is the response used when a player is flagged.
 fishing-captcha:
   enabled: true
-  captcha-item: 'EMERALD' # Type of item they need to click on
-  inventory-name: "Click the emerald to verify!"
+  block-fishing-until-solved: true # Cancel catches until solved. Disable if players ever get stuck.
+  captcha-item: 'EMERALD' # Item the player must click.
+  inventory-name: '<green>Click the emerald to verify!</green>'
   inventory-size: 36
-  success-message: '&aYou have successfully verified.'
-  closed-inv-message: '&cYou must complete the captcha to continue.'
-  exploit-numbers:
-  - 5
+  success-message: '<green>You have successfully verified.</green>'
+  closed-inv-message: '<red>You must complete the captcha to continue.</red>'
+  exploit-numbers: [5] # Same-spot catch totals that open the captcha.
 
-# Fishing cooldown is giving a player a temporary cooldown for the amount of anti fish total
-
-fishing-cooldown: 
+# Temporary cooldown between catches at the listed same-spot totals.
+fishing-cooldown:
   enabled: false
-  length: -1 # This is in seconds
-  exploit-numbers: # This is the "anti fish total" (the amount of times they have fished from the same spot)
-  - 5
-  - 6
-  - 7
-  - 8
-  - 9
-  - 10
-  
-# Fishing messages is giving a player a warning message for the amount of anti fish total
-  
+  length: 30 # Cooldown in seconds.
+  exploit-numbers: [5, 6, 7, 8, 9, 10]
+
+# Warning message at the listed same-spot totals.
 fishing-messages:
   enabled: false
-  message: "&cPlease move around while fishing." # This is the message they will receive
-  exploit-numbers: # This is the "anti fish total" (the amount of times they have fished from the same spot)
-  - 5
-  - 6
-  - 7
-  - 8
-  - 9 
-  - 10
-  
-# This will stop a player from fishing on these anti fish totals
- 
+  message: '<red>Please move around while fishing.</red>'
+  exploit-numbers: [5, 6, 7, 8, 9, 10]
+
+# Block catches at the listed same-spot totals.
 disallow-fish:
   enabled: false
-  exploit-numbers:  # This is the "anti fish total" (the amount of times they have fished from the same spot)
-  - 5
-  - 6
-  - 7
-  - 8
-  - 9 
-  - 10
-  
-# This will kick a player for fishing in the same spot too many times
- 
+  exploit-numbers: [5, 6, 7, 8, 9, 10]
+
+# Kick the player at the listed same-spot totals.
 kicking-players:
   enabled: false
-  message: "&cYou were detected for auto fishing." # This is the message they will receive
-  exploit-numbers:  # This is the "anti fish total" (the amount of times they have fished from the same spot)
-  - 15
+  message: '<red>You were detected for auto fishing.</red>'
+  exploit-numbers: [15]

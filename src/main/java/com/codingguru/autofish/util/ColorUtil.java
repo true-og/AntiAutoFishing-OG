@@ -1,11 +1,24 @@
 package com.codingguru.autofish.util;
 
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.minimessage.MiniMessage;
+
 public final class ColorUtil {
 
-	public static String replace(String s) {
-		return s.replaceAll("(&([a-f0-9]))", "\u00A7$2").replaceAll("&l", "\u00A7l").replaceAll("&o", "\u00A7o")
-				.replaceAll("&k", "\u00A7k").replaceAll("&r", "\u00A7r").replaceAll("&n", "\u00A7n")
-				.replaceAll("&m", "\u00A7m");
-	}
+    private static final MiniMessage MINI_MESSAGE = MiniMessage.miniMessage();
+
+    private ColorUtil() {
+
+    }
+
+    /**
+     * Parses a MiniMessage-formatted string into an Adventure {@link Component}. A
+     * null input yields an empty component.
+     */
+    public static Component format(String message) {
+
+        return MINI_MESSAGE.deserialize(message == null ? "" : message);
+
+    }
 
 }

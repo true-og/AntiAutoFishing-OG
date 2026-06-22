@@ -6,42 +6,45 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.plugin.java.JavaPlugin;
 
 import com.codingguru.autofish.AntiAutoFish;
 import com.codingguru.autofish.handlers.CaptchaHandler;
+import com.codingguru.autofish.handlers.CaptchaHolder;
 import com.codingguru.autofish.util.ColorUtil;
 
 public class InventoryClick implements Listener {
 
-	private final JavaPlugin plugin;
+    @EventHandler
+    public void onInventoryClick(InventoryClickEvent e) {
 
-	public InventoryClick(JavaPlugin plugin) {
-		this.plugin = plugin;
-	}
+        if (!(e.getWhoClicked() instanceof Player))
+            return;
 
-	@SuppressWarnings("deprecation")
-	@EventHandler
-	public void onInventoryClick(InventoryClickEvent e) {
-		if (!(e.getWhoClicked() instanceof Player))
-			return;
+        // Only act on the captcha GUI.
+        if (!(e.getInventory().getHolder() instanceof CaptchaHolder))
+            return;
 
-		String configTitle = plugin.getConfig().getString("fishing-captcha.inventory-name", "Verify!");
+        final Player player = (Player) e.getWhoClicked();
 
-		if (!e.getView().getTitle().equals(configTitle))
-			return;
+        // Lock down every click while the captcha is open (including the player's own
+        // inventory).
+        e.setCancelled(true);
 
-		Player player = (Player) e.getWhoClicked();
+        // Only a click inside the captcha inventory itself can solve it.
+        if (e.getClickedInventory() == null || !(e.getClickedInventory().getHolder() instanceof CaptchaHolder))
+            return;
 
-		e.setCancelled(true);
+        final ItemStack clickedItem = e.getCurrentItem();
+        final Material targetItem = CaptchaHandler.getInstance().getTargetItem();
 
-		ItemStack clickedItem = e.getCurrentItem();
-		Material targetItem = CaptchaHandler.getInstance().getTargetItem();
+        if (clickedItem != null && clickedItem.getType() == targetItem) {
 
-		if (clickedItem != null && clickedItem.getType() == targetItem) {
-			player.sendMessage(ColorUtil.replace(AntiAutoFish.getInstance().getConfig()
-					.getString("fishing-captcha.success-message", "You have completed the captcha!")));
-			CaptchaHandler.getInstance().completeCaptcha(player);
-		}
-	}
+            player.sendMessage(ColorUtil.format(AntiAutoFish.getInstance().getConfig()
+                    .getString("fishing-captcha.success-message", "You have completed the captcha!")));
+            CaptchaHandler.getInstance().completeCaptcha(player);
+
+        }
+
+    }
+
 }

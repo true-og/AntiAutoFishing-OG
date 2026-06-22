@@ -9,33 +9,47 @@ import org.bukkit.scheduler.BukkitRunnable;
 
 import com.codingguru.autofish.AntiAutoFish;
 import com.codingguru.autofish.handlers.CaptchaHandler;
+import com.codingguru.autofish.handlers.CaptchaHolder;
 import com.codingguru.autofish.util.ColorUtil;
 
 public class InventoryClose implements Listener {
 
-	private final JavaPlugin plugin;
+    private final JavaPlugin plugin;
 
-	public InventoryClose(JavaPlugin plugin) {
-		this.plugin = plugin;
-	}
+    public InventoryClose(JavaPlugin plugin) {
 
-	@EventHandler
-	public void onInventoryClose(InventoryCloseEvent e) {
-		if (!(e.getPlayer() instanceof Player))
-			return;
+        this.plugin = plugin;
 
-		Player player = (Player) e.getPlayer();
+    }
 
-		if (!CaptchaHandler.getInstance().hasPendingCaptcha(player))
-			return;
+    @EventHandler
+    public void onInventoryClose(InventoryCloseEvent e) {
 
-		new BukkitRunnable() {
-			@Override
-			public void run() {
-				CaptchaHandler.getInstance().openCaptcha(player);
-				player.sendMessage(ColorUtil.replace(AntiAutoFish.getInstance().getConfig().getString(
-						"fishing-captcha.closed-inv-message", "You must complete the captcha to continue!")));
-			}
-		}.runTaskLater(plugin, 1L);
-	}
+        if (!(e.getPlayer() instanceof Player))
+            return;
+
+        // Only react to closing the captcha GUI itself.
+        if (!(e.getInventory().getHolder() instanceof CaptchaHolder))
+            return;
+
+        Player player = (Player) e.getPlayer();
+
+        if (!CaptchaHandler.getInstance().hasPendingCaptcha(player))
+            return;
+
+        new BukkitRunnable() {
+
+            @Override
+            public void run() {
+
+                CaptchaHandler.getInstance().openCaptcha(player);
+                player.sendMessage(ColorUtil.format(AntiAutoFish.getInstance().getConfig().getString(
+                        "fishing-captcha.closed-inv-message", "You must complete the captcha to continue!")));
+
+            }
+
+        }.runTaskLater(plugin, 1L);
+
+    }
+
 }
