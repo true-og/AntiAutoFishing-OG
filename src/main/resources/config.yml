@@ -31,7 +31,7 @@ fishing-captcha:
   inventory-size: 36
   success-message: '<green>You have successfully verified.</green>'
   closed-inv-message: '<red>You must complete the captcha to continue.</red>'
-  exploit-numbers: [5] # Same-spot catch totals that open the captcha.
+  exploit-numbers: [12] # Same-spot catch totals that open the captcha.
 
 # Temporary cooldown between catches at the listed same-spot totals.
 fishing-cooldown:
@@ -52,6 +52,6 @@ disallow-fish:
 
 # Kick the player at the listed same-spot totals.
 kicking-players:
-  enabled: false
+  enabled: true
   message: '<red>You were detected for auto fishing.</red>'
-  exploit-numbers: [15]
+  exploit-numbers: [30]

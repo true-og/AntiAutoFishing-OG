@@ -1,4 +1,4 @@
-name: AntiAutoFishing
+name: AntiAutoFishing-OG
 version: '${version}'
 api-version: '${apiVersion}'
 main: com.codingguru.autofish.AntiAutoFish
