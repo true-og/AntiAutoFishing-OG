@@ -20,4 +20,4 @@ Minecraft API: 1.19
 
 API Jar: 1.19.4 Purpur
 
-AntiAutoFishing-OG is released under the terms of the [GNU General Public License v3.0](https://github.com/true-og/AntiAutoFishing-OG/blob/main/LICENSE).
+AntiAutoFishing-OG is released under the terms of the [GNU General Public License v3.0](https://git.trueog.net/trueog/AntiAutoFishing-OG/src/branch/main/LICENSE).
